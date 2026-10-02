@@ -1,14 +1,21 @@
 # TC01
-<img width="921" height="383" alt="image" src="https://github.com/user-attachments/assets/4c2c2503-0284-4579-a463-47dccbe199b9" />
+<img width="815" height="172" alt="Ảnh chụp màn hình 2026-10-02 140314" src="https://github.com/user-attachments/assets/0c7e4789-8927-47a2-97ce-936e12dc4cc1" />
+
 # TC02
-<img width="815" height="172" alt="image" src="https://github.com/user-attachments/assets/4f8bcf3d-f018-4c96-83b1-9f859ac39d30" />
+<img width="815" height="172" alt="Ảnh chụp màn hình 2026-10-02 140314" src="https://github.com/user-attachments/assets/a18eb9e5-6efe-40d2-b85d-9f93d5269c85" />
+
+
 # TC03
-<img width="1835" height="117" alt="image" src="https://github.com/user-attachments/assets/c6c1a3ea-2b38-4d66-96c2-93cfc2e508f0" />
+<img width="1857" height="113" alt="Ảnh chụp màn hình 2026-10-02 140555" src="https://github.com/user-attachments/assets/aa44487f-2d47-4e70-badf-9862f2752487" />
+
 # TC04
-<img width="1792" height="62" alt="image" src="https://github.com/user-attachments/assets/5bd8ac15-e239-4c8c-bd5e-cda598659010" />
+<img width="1857" height="113" alt="Ảnh chụp màn hình 2026-10-02 140555" src="https://github.com/user-attachments/assets/b5b7e498-bdae-47c3-a24f-3473dc192007" />
+
 # TC05
-<img width="1857" height="113" alt="image" src="https://github.com/user-attachments/assets/3240c68c-af56-4e05-b5a4-b641a31e6fda" />
+<img width="1857" height="113" alt="Ảnh chụp màn hình 2026-10-02 140555" src="https://github.com/user-attachments/assets/5ca18106-ebae-44ce-927e-98c74507a862" />
+
 
 # TC06
-<img width="1791" height="765" alt="Ảnh chụp màn hình 2026-10-02 134942" src="https://github.com/user-attachments/assets/ed38396c-9f0d-48c9-89d1-99b14e327910" />
+<img width="1791" height="765" alt="Ảnh chụp màn hình 2026-10-02 134942" src="https://github.com/user-attachments/assets/f815c24b-cf91-435f-8f71-acd93766452b" />
+
 
