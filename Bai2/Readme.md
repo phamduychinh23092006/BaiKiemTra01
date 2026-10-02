@@ -1,5 +1,5 @@
 # TC01
-<img width="815" height="172" alt="Ảnh chụp màn hình 2026-10-02 140314" src="https://github.com/user-attachments/assets/0c7e4789-8927-47a2-97ce-936e12dc4cc1" />
+<img width="921" height="383" alt="Ảnh chụp màn hình 2026-10-02 140047" src="https://github.com/user-attachments/assets/e2cbedbb-ae43-4aae-aa30-4ee8ea61704b" />
 
 # TC02
 <img width="815" height="172" alt="Ảnh chụp màn hình 2026-10-02 140314" src="https://github.com/user-attachments/assets/a18eb9e5-6efe-40d2-b85d-9f93d5269c85" />
