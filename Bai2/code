@@ -1,1 +1,375 @@
 
+using System.Globalization;
+using System.Text;
+
+Console.OutputEncoding = Encoding.UTF8;
+Console.InputEncoding = Encoding.UTF8;
+
+var ql = new QuanLyPhuongTien();
+bool chay = true;
+
+while (chay)
+{
+    Console.WriteLine();
+    Console.WriteLine("========== QUẢN LÝ PHƯƠNG TIỆN - AUTOSPEED ==========");
+    Console.WriteLine("1. Thêm ô tô");
+    Console.WriteLine("2. Thêm xe máy");
+    Console.WriteLine("3. Hiển thị toàn bộ phương tiện");
+    Console.WriteLine("4. Tìm phương tiện có giá lăn bánh cao nhất");
+    Console.WriteLine("5. Tìm theo tên hãng");
+    Console.WriteLine("6. Chạy tự động các Test Case (TC01 - TC05)");
+    Console.WriteLine("0. Thoát");
+    Console.Write("Chọn chức năng: ");
+
+    switch (Console.ReadLine()?.Trim())
+    {
+        case "1": NhapOTo(ql); break;
+        case "2": NhapXeMay(ql); break;
+        case "3":
+            Console.WriteLine();
+            ql.DisplayAll();
+            break;
+        case "4":
+            PhuongTien? max = ql.FindMaxGiaLanBanh();
+            if (max == null)
+                Console.WriteLine("Danh sách trống.");
+            else
+                Console.WriteLine($"{max.GetInfo()} | Giá lăn bánh: {PhuongTien.FormatTien(max.TinhGiaLanBanh())}");
+            break;
+        case "5":
+            string kw = DocChuoi("Nhập tên hãng cần tìm: ");
+            var kq = ql.SearchByName(kw);
+            Console.WriteLine($"Tìm thấy {kq.Count} kết quả:");
+            foreach (var pt in kq)
+                Console.WriteLine($"   - {pt.GetInfo()} | Giá lăn bánh: {PhuongTien.FormatTien(pt.TinhGiaLanBanh())}");
+            break;
+        case "6": ChayTestCase(); break;
+        case "0": chay = false; break;
+        default: Console.WriteLine("Lựa chọn không hợp lệ."); break;
+    }
+}
+
+// ======================= TEST CASES =======================
+
+static void ChayTestCase()
+{
+    Console.WriteLine();
+    Console.WriteLine("=============== KỊCH BẢN KIỂM THỬ ===============");
+
+    // TC01: Validation năm sản xuất
+    Console.WriteLine("\n--- TC01: Kiểm tra Validation Năm sản xuất (NamSanXuat = 1850) ---");
+    try
+    {
+        var oto = new OTo("OT01", "Toyota", 1850, 1_000_000_000m, 5, 2.0);
+        Console.WriteLine("Đã tạo được đối tượng -> KHÔNG ném ngoại lệ");
+        KetQua(false);
+    }
+    catch (ArgumentException ex)
+    {
+        Console.WriteLine($"ArgumentException: \"{ex.Message}\"");
+        KetQua(ex.Message == "Năm sản xuất không hợp lệ!");
+    }
+
+    // TC02: Giá lăn bánh ô tô 5 chỗ
+    Console.WriteLine("\n--- TC02: Giá lăn bánh Ô tô 5 chỗ, GiaGoc = 1.000.000.000 ---");
+    var oto5 = new OTo("OT01", "Toyota", 2023, 1_000_000_000m, 5, 2.0);
+    decimal gia1 = oto5.TinhGiaLanBanh();
+    Console.WriteLine($"Giá lăn bánh = {PhuongTien.FormatTien(gia1)} (kỳ vọng 1.420.000.000 VNĐ)");
+    KetQua(gia1 == 1_420_000_000m);
+
+    // TC03: Giá lăn bánh xe máy 150cc
+    Console.WriteLine("\n--- TC03: Giá lăn bánh Xe máy 150cc, GiaGoc = 50.000.000 ---");
+    var xm150 = new XeMay("XM01", "Honda", 2024, 50_000_000m, 150);
+    decimal gia2 = xm150.TinhGiaLanBanh();
+    Console.WriteLine($"Giá lăn bánh = {PhuongTien.FormatTien(gia2)} (kỳ vọng 51.000.000 VNĐ)");
+    KetQua(gia2 == 51_000_000m);
+
+    // TC04: Đa hình trong List<PhuongTien>
+    Console.WriteLine("\n--- TC04: Đa hình List<PhuongTien> ---");
+    var ds = new List<PhuongTien> { oto5, xm150 };
+    decimal[] kyVong = { 1_420_000_000m, 51_000_000m };
+    bool dat4 = true;
+    for (int i = 0; i < ds.Count; i++)
+    {
+        decimal g = ds[i].TinhGiaLanBanh();
+        Console.WriteLine($"[{ds[i].GetType().Name}] {ds[i].MaPT}: {PhuongTien.FormatTien(g)}");
+        if (g != kyVong[i]) dat4 = false;
+    }
+    KetQua(dat4);
+
+    // TC05: Tìm giá lăn bánh max
+    Console.WriteLine("\n--- TC05: FindMaxGiaLanBanh() ---");
+    var qlTest = new QuanLyPhuongTien();
+    qlTest.AddPhuongTien(oto5);
+    qlTest.AddPhuongTien(xm150);
+    PhuongTien? max = qlTest.FindMaxGiaLanBanh();
+    if (max != null)
+        Console.WriteLine($"Kết quả: [{max.GetType().Name}] {max.MaPT} - {PhuongTien.FormatTien(max.TinhGiaLanBanh())}");
+    KetQua(max is OTo && max.TinhGiaLanBanh() == 1_420_000_000m);
+}
+
+static void KetQua(bool dat) =>
+    Console.WriteLine(dat ? "=> Trạng thái: PASS" : "=> Trạng thái: FAIL");
+
+// ======================= HÀM NHẬP LIỆU =======================
+
+static void NhapOTo(QuanLyPhuongTien ql)
+{
+    try
+    {
+        string ma = DocChuoi("Mã PT: ");
+        string hang = DocChuoi("Tên hãng: ");
+        int nam = DocSoNguyen("Năm sản xuất: ");
+        decimal gia = DocDecimal("Giá gốc (VNĐ, gõ liền không dấu chấm): ");
+        int soCho = DocSoNguyen("Số chỗ ngồi: ");
+        double dungTich = DocSoThuc("Dung tích động cơ (lít): ");
+
+        ql.AddPhuongTien(new OTo(ma, hang, nam, gia, soCho, dungTich));
+        Console.WriteLine("-> Đã thêm ô tô.");
+    }
+    catch (ArgumentException ex)
+    {
+        Console.WriteLine($"-> Lỗi dữ liệu: {ex.Message} (chưa thêm)");
+    }
+}
+
+static void NhapXeMay(QuanLyPhuongTien ql)
+{
+    try
+    {
+        string ma = DocChuoi("Mã PT: ");
+        string hang = DocChuoi("Tên hãng: ");
+        int nam = DocSoNguyen("Năm sản xuất: ");
+        decimal gia = DocDecimal("Giá gốc (VNĐ, gõ liền không dấu chấm): ");
+        int cc = DocSoNguyen("Dung tích xy lanh (cc): ");
+
+        ql.AddPhuongTien(new XeMay(ma, hang, nam, gia, cc));
+        Console.WriteLine("-> Đã thêm xe máy.");
+    }
+    catch (ArgumentException ex)
+    {
+        Console.WriteLine($"-> Lỗi dữ liệu: {ex.Message} (chưa thêm)");
+    }
+}
+
+static string DocChuoi(string thongBao)
+{
+    Console.Write(thongBao);
+    return Console.ReadLine() ?? "";
+}
+
+static int DocSoNguyen(string thongBao)
+{
+    while (true)
+    {
+        Console.Write(thongBao);
+        if (int.TryParse(Console.ReadLine(), out int kq)) return kq;
+        Console.WriteLine("Vui lòng nhập một số nguyên hợp lệ.");
+    }
+}
+
+static double DocSoThuc(string thongBao)
+{
+    while (true)
+    {
+        Console.Write(thongBao);
+        string s = (Console.ReadLine() ?? "").Replace(',', '.');
+        if (double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out double kq)) return kq;
+        Console.WriteLine("Vui lòng nhập một số hợp lệ (ví dụ 2.0).");
+    }
+}
+
+static decimal DocDecimal(string thongBao)
+{
+    while (true)
+    {
+        Console.Write(thongBao);
+        string s = (Console.ReadLine() ?? "").Replace(',', '.');
+        if (decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal kq)) return kq;
+        Console.WriteLine("Vui lòng nhập một số hợp lệ (ví dụ 800000000).");
+    }
+}
+
+// ======================= CÁC LỚP =======================
+
+public abstract class PhuongTien
+{
+    protected static readonly CultureInfo VN = new("vi-VN");
+
+    private string _maPT = "PT000";
+    private string _tenHang = string.Empty;
+    private int _namSanXuat;
+    private decimal _giaGoc;
+
+    public string MaPT
+    {
+        get => _maPT;
+        set => _maPT = string.IsNullOrWhiteSpace(value) ? "PT000" : value.Trim();
+    }
+
+    public string TenHang
+    {
+        get => _tenHang;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                throw new ArgumentException("Tên hãng không được để trống!");
+            _tenHang = value.Trim();
+        }
+    }
+
+    public int NamSanXuat
+    {
+        get => _namSanXuat;
+        set
+        {
+            if (value < 1900 || value > DateTime.Now.Year)
+                throw new ArgumentException("Năm sản xuất không hợp lệ!");
+            _namSanXuat = value;
+        }
+    }
+
+    public decimal GiaGoc
+    {
+        get => _giaGoc;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentException("Giá gốc phải lớn hơn 0!");
+            _giaGoc = value;
+        }
+    }
+
+    protected PhuongTien(string maPT, string tenHang, int namSanXuat, decimal giaGoc)
+    {
+        MaPT = maPT;
+        TenHang = tenHang;
+        NamSanXuat = namSanXuat;
+        GiaGoc = giaGoc;
+    }
+
+    public abstract decimal TinhGiaLanBanh();
+
+    public virtual string GetInfo() =>
+        $"Mã: {MaPT} | Hãng: {TenHang} | Năm SX: {NamSanXuat} | Giá gốc: {FormatTien(GiaGoc)}";
+
+    public static string FormatTien(decimal soTien) => soTien.ToString("N0", VN) + " VNĐ";
+}
+
+public class OTo : PhuongTien
+{
+    private int _soChoNgoi;
+    private double _dungTichDongCo;
+
+    public int SoChoNgoi
+    {
+        get => _soChoNgoi;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentException("Số chỗ ngồi phải lớn hơn 0!");
+            _soChoNgoi = value;
+        }
+    }
+
+    public double DungTichDongCo
+    {
+        get => _dungTichDongCo;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentException("Dung tích động cơ phải lớn hơn 0!");
+            _dungTichDongCo = value;
+        }
+    }
+
+    public OTo(string maPT, string tenHang, int namSanXuat, decimal giaGoc,
+               int soChoNgoi, double dungTichDongCo)
+        : base(maPT, tenHang, namSanXuat, giaGoc)
+    {
+        SoChoNgoi = soChoNgoi;
+        DungTichDongCo = dungTichDongCo;
+    }
+
+    public override decimal TinhGiaLanBanh()
+    {
+        if (SoChoNgoi <= 9)
+            return GiaGoc + GiaGoc * 0.12m + GiaGoc * 0.30m;   // trước bạ 12% + TTĐB 30%
+
+        return GiaGoc + GiaGoc * 0.10m;                        // trước bạ 10%
+    }
+
+    public override string GetInfo() =>
+        base.GetInfo() +
+        $" | Số chỗ: {SoChoNgoi} | Dung tích động cơ: {DungTichDongCo.ToString("0.0", CultureInfo.InvariantCulture)} L";
+}
+
+public class XeMay : PhuongTien
+{
+    private int _dungTichXylanh;
+
+    public int DungTichXylanh
+    {
+        get => _dungTichXylanh;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentException("Dung tích xy lanh phải lớn hơn 0!");
+            _dungTichXylanh = value;
+        }
+    }
+
+    public XeMay(string maPT, string tenHang, int namSanXuat, decimal giaGoc, int dungTichXylanh)
+        : base(maPT, tenHang, namSanXuat, giaGoc)
+    {
+        DungTichXylanh = dungTichXylanh;
+    }
+
+    public override decimal TinhGiaLanBanh()
+    {
+        decimal tyLe = DungTichXylanh < 175 ? 0.02m : 0.05m;
+        return GiaGoc + GiaGoc * tyLe;
+    }
+
+    public override string GetInfo() =>
+        base.GetInfo() + $" | Dung tích xy lanh: {DungTichXylanh} cc";
+}
+
+public class QuanLyPhuongTien
+{
+    private readonly List<PhuongTien> _danhSach = new();
+
+    public void AddPhuongTien(PhuongTien pt)
+    {
+        ArgumentNullException.ThrowIfNull(pt);
+        _danhSach.Add(pt);
+    }
+
+    public void DisplayAll()
+    {
+        if (_danhSach.Count == 0)
+        {
+            Console.WriteLine("(Danh sách trống)");
+            return;
+        }
+
+        int stt = 1;
+        foreach (PhuongTien pt in _danhSach)
+        {
+            Console.WriteLine($"{stt++}. [{pt.GetType().Name}] {pt.GetInfo()} | Giá lăn bánh: {PhuongTien.FormatTien(pt.TinhGiaLanBanh())}");
+        }
+    }
+
+    public PhuongTien? FindMaxGiaLanBanh() =>
+        _danhSach.MaxBy(pt => pt.TinhGiaLanBanh());
+
+    public List<PhuongTien> SearchByName(string keyword)
+    {
+        if (string.IsNullOrWhiteSpace(keyword))
+            return new List<PhuongTien>();
+
+        return _danhSach
+            .Where(pt => pt.TenHang.Contains(keyword.Trim(), StringComparison.OrdinalIgnoreCase))
+            .ToList();
+    }
+}
